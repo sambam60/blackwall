@@ -89,10 +89,31 @@ permissions:
       - diff
       - curl
       - wget
+      - ssh
+      - scp
+      - rsync
       - mkdir
       - cp
       - mv
       - touch
+      - rm
+      - ln
+      - env
+      - which
+      - whoami
+      - basename
+      - dirname
+      - realpath
+      - readlink
+      - tee
+      - tr
+      - cut
+      - xargs
+      - test
+      - true
+      - false
+      - printf
+      - date
     deny:
       - sudo
       - su

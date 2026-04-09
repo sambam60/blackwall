@@ -50,19 +50,31 @@ pub fn prompt(context: &EscalationContext) -> EscalationResponse {
 
 /// Resolve a Pause decision by prompting the user inline.
 /// Non-Pause decisions pass through unchanged.
-pub fn resolve_pause(decision: Decision) -> Decision {
+pub fn resolve_pause(decision: Decision, interactive: bool) -> Decision {
     match decision {
-        Decision::Pause { context, .. } => match prompt(&context) {
-            EscalationResponse::Allow => Decision::Allow,
-            EscalationResponse::Deny => Decision::Deny {
-                reason: "denied by user".into(),
-                rule: "escalation.user_denied".into(),
-            },
-            EscalationResponse::EndSession => Decision::Deny {
-                reason: "session ended by user".into(),
-                rule: "escalation.session_ended".into(),
-            },
-        },
+        Decision::Pause { reason, context } => {
+            if !interactive {
+                eprintln!(
+                    "  \x1b[33m⏸ auto-deny (non-interactive): {}\x1b[0m",
+                    context.what_happened
+                );
+                return Decision::Deny {
+                    reason: format!("auto-denied (non-interactive): {}", reason),
+                    rule: "escalation.non_interactive".into(),
+                };
+            }
+            match prompt(&context) {
+                EscalationResponse::Allow => Decision::Allow,
+                EscalationResponse::Deny => Decision::Deny {
+                    reason: "denied by user".into(),
+                    rule: "escalation.user_denied".into(),
+                },
+                EscalationResponse::EndSession => Decision::Deny {
+                    reason: "session ended by user".into(),
+                    rule: "escalation.session_ended".into(),
+                },
+            }
+        }
         other => other,
     }
 }

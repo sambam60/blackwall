@@ -129,7 +129,7 @@ fn intercept_forward<R: io::Read, W: Write>(
             let seq = gw.action_count() + 1;
             let envelope = ActionEnvelope::new(session_id, seq, action);
             let raw = gw.process(&envelope);
-            escalation::resolve_pause(raw)
+            escalation::resolve_pause(raw, false)
         };
 
         match decision {

@@ -64,8 +64,8 @@ fn handle_connection(
             Err(_) => break,
         };
 
-        let action: Action = match serde_json::from_str(&line) {
-            Ok(a) => a,
+        let msg: serde_json::Value = match serde_json::from_str(&line) {
+            Ok(v) => v,
             Err(e) => {
                 let resp = serde_json::json!({
                     "decision": "deny",
@@ -76,14 +76,31 @@ fn handle_connection(
             }
         };
 
-        // Hold the lock through evaluation + escalation so only one
-        // prompt can be active at a time
+        // The request may include an "interactive" flag alongside the
+        // action fields. Extract it before deserializing the Action.
+        let interactive = msg
+            .get("interactive")
+            .and_then(|v| v.as_bool())
+            .unwrap_or(false);
+
+        let action: Action = match serde_json::from_value(msg) {
+            Ok(a) => a,
+            Err(e) => {
+                let resp = serde_json::json!({
+                    "decision": "deny",
+                    "reason": format!("invalid action: {}", e)
+                });
+                let _ = writeln!(writer, "{}", resp);
+                continue;
+            }
+        };
+
         let decision = {
             let mut gw = gateway.lock().unwrap();
             let seq = gw.action_count() + 1;
             let envelope = ActionEnvelope::new(session_id, seq, action);
             let raw = gw.process(&envelope);
-            escalation::resolve_pause(raw)
+            escalation::resolve_pause(raw, interactive)
         };
 
         let resp = match &decision {

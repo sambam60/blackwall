@@ -297,8 +297,6 @@ fn eval_action(socket_path: PathBuf, real_binary: String, args: Vec<String>) {
     use std::os::unix::net::UnixStream;
     use std::os::unix::process::CommandExt;
 
-    // Use the basename for policy matching — policy rules reference short
-    // names like "curl", not full paths like "/usr/bin/curl"
     let program_name = std::path::Path::new(&real_binary)
         .file_name()
         .and_then(|n| n.to_str())
@@ -310,11 +308,17 @@ fn eval_action(socket_path: PathBuf, real_binary: String, args: Vec<String>) {
         format!("{} {}", program_name, args.join(" "))
     };
 
+    // If stderr is a TTY, the caller is likely a human in a real terminal.
+    // If not (piped, agent-spawned), pause decisions auto-deny instead of
+    // blocking on a prompt the user can't see.
+    let interactive = atty::is(atty::Stream::Stderr);
+
     let action = serde_json::json!({
         "tool": "shell",
         "operation": "exec",
         "target": command_str,
-        "parameters": {}
+        "parameters": {},
+        "interactive": interactive
     });
 
     let mut stream = match UnixStream::connect(&socket_path) {
