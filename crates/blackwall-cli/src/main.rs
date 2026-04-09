@@ -120,6 +120,12 @@ fn start(policy_name: Option<String>, workspace_arg: Option<PathBuf>) {
     let shim_path_display = shim_dir.path().display().to_string();
     let shim_path_cleanup = shim_dir.path().to_path_buf();
 
+    // Write PID file so `blackwall off` can signal this process
+    let pid_path = blackwall_dir()
+        .join("run")
+        .join(format!("{}.pid", session_id));
+    std::fs::write(&pid_path, std::process::id().to_string()).expect("cannot write pid file");
+
     let gw_ipc = Arc::clone(&gateway);
     let sid = session_id.clone();
     std::thread::spawn(move || ipc.run(gw_ipc, sid));
@@ -135,9 +141,11 @@ fn start(policy_name: Option<String>, workspace_arg: Option<PathBuf>) {
     eprintln!();
 
     let socket_cleanup = socket_path.clone();
+    let pid_cleanup = pid_path.clone();
     let (tx, rx) = std::sync::mpsc::channel();
     ctrlc::set_handler(move || {
         let _ = std::fs::remove_file(&socket_cleanup);
+        let _ = std::fs::remove_file(&pid_cleanup);
         let _ = std::fs::remove_dir_all(&shim_path_cleanup);
         tx.send(()).ok();
     })
@@ -478,37 +486,67 @@ fn off() {
         return;
     }
 
-    let sockets: Vec<_> = std::fs::read_dir(&run_dir)
+    let pid_files: Vec<_> = std::fs::read_dir(&run_dir)
         .into_iter()
         .flatten()
         .filter_map(|e| e.ok())
         .filter(|e| {
             e.path()
                 .extension()
-                .map(|x| x == "sock")
+                .map(|x| x == "pid")
                 .unwrap_or(false)
         })
         .collect();
 
-    if sockets.is_empty() {
+    if pid_files.is_empty() {
         eprintln!("  \x1b[2m■ no active sessions\x1b[0m");
         return;
     }
 
-    for sock in &sockets {
-        let _ = std::fs::remove_file(sock.path());
-        let session_id = sock
+    for entry in &pid_files {
+        let session_id = entry
             .path()
             .file_stem()
             .unwrap()
             .to_string_lossy()
             .to_string();
-        let shim_dir = dirs::home_dir()
-            .unwrap()
-            .join(".blackwall/shims")
-            .join(&session_id);
-        let _ = std::fs::remove_dir_all(&shim_dir);
-        eprintln!("  \x1b[2m■ stopped session {}\x1b[0m", session_id);
+
+        if let Ok(pid_str) = std::fs::read_to_string(entry.path()) {
+            if let Ok(pid) = pid_str.trim().parse::<u32>() {
+                // Send SIGINT — the gateway's ctrlc handler cleans up
+                // socket, shims, and PID file, then exits gracefully.
+                let _ = std::process::Command::new("kill")
+                    .args(["-INT", &pid.to_string()])
+                    .status();
+                eprintln!("  \x1b[2m■ sent stop to session {} (pid {})\x1b[0m", session_id, pid);
+            }
+        }
+    }
+
+    // Give gateways a moment to clean up, then sweep stale artifacts
+    std::thread::sleep(std::time::Duration::from_millis(500));
+
+    for ext in &["pid", "sock"] {
+        for entry in std::fs::read_dir(&run_dir)
+            .into_iter()
+            .flatten()
+            .filter_map(|e| e.ok())
+        {
+            if entry.path().extension().map(|x| x == *ext).unwrap_or(false) {
+                let session_id = entry
+                    .path()
+                    .file_stem()
+                    .unwrap()
+                    .to_string_lossy()
+                    .to_string();
+                let _ = std::fs::remove_file(entry.path());
+                let shim_dir = dirs::home_dir()
+                    .unwrap()
+                    .join(".blackwall/shims")
+                    .join(&session_id);
+                let _ = std::fs::remove_dir_all(&shim_dir);
+            }
+        }
     }
 }
 

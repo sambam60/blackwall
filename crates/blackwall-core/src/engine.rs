@@ -180,7 +180,9 @@ impl PolicyEngine {
         let program = command.split_whitespace().next().unwrap_or("");
 
         for denied in &self.policy.permissions.shell.deny {
-            if program == denied || command.contains(denied.as_str()) {
+            if program == denied
+                || (denied.contains(' ') && command.contains(denied.as_str()))
+            {
                 return Decision::Deny {
                     reason: format!("command '{}' matches deny rule '{}'", program, denied),
                     rule: "permissions.shell.deny".into(),
