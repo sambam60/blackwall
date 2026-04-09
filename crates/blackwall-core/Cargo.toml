@@ -3,6 +3,7 @@ name = "blackwall-core"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
+repository.workspace = true
 description = "Core policy engine for the Blackwall Protocol — a deterministic execution firewall for AI agents"
 
 [dependencies]

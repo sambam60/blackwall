@@ -3,6 +3,7 @@ name = "blackwall-cli"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
+repository.workspace = true
 description = "CLI for the Blackwall Protocol — type `blackwall` and you're protected"
 
 [[bin]]
@@ -10,8 +11,8 @@ name = "blackwall"
 path = "src/main.rs"
 
 [dependencies]
-blackwall-core = { path = "../blackwall-core" }
-blackwall-gateway = { path = "../blackwall-gateway" }
+blackwall-core = { version = "0.1.0", path = "../blackwall-core" }
+blackwall-gateway = { version = "0.1.0", path = "../blackwall-gateway" }
 clap = { version = "4", features = ["derive"] }
 ctrlc = "3"
 dirs = "5"

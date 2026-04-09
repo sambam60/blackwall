@@ -106,37 +106,41 @@ source ~/.blackwall/env
 
 ## Commands
 
-| Command | What it does |
-| --- | --- |
-| `blackwall` | Start the gateway. Shell shims + IPC server + audit log. |
-| `blackwall init` | Add shell hook to `~/.zshrc` (one-time setup). |
-| `blackwall exec -- <cmd>` | Wrap a specific process with full protection. |
-| `blackwall proxy-mcp -- <cmd>` | Proxy an MCP server with tool call interception. |
-| `blackwall off` | Stop all running gateways. |
-| `blackwall status` | Show active sessions and recent logs. |
-| `blackwall logs` | Print the most recent audit log. |
-| `blackwall logs --follow` | Live tail of the audit stream. |
-| `blackwall logs -s <id>` | Print a specific session's log. |
-| `blackwall --policy strict` | Start with the strict policy. |
-| `blackwall --policy ./custom.yaml` | Start with a custom policy file. |
+
+| Command                            | What it does                                             |
+| ---------------------------------- | -------------------------------------------------------- |
+| `blackwall`                        | Start the gateway. Shell shims + IPC server + audit log. |
+| `blackwall init`                   | Add shell hook to `~/.zshrc` (one-time setup).           |
+| `blackwall exec -- <cmd>`          | Wrap a specific process with full protection.            |
+| `blackwall proxy-mcp -- <cmd>`     | Proxy an MCP server with tool call interception.         |
+| `blackwall off`                    | Stop all running gateways.                               |
+| `blackwall status`                 | Show active sessions and recent logs.                    |
+| `blackwall logs`                   | Print the most recent audit log.                         |
+| `blackwall logs --follow`          | Live tail of the audit stream.                           |
+| `blackwall logs -s <id>`           | Print a specific session's log.                          |
+| `blackwall --policy strict`        | Start with the strict policy.                            |
+| `blackwall --policy ./custom.yaml` | Start with a custom policy file.                         |
+
 
 ## Policies
 
 Three built-in profiles:
 
-- **`default`** — sensible defaults for development. Standard dev commands allowed, dangerous patterns blocked, unknown network denied.
-- **`strict`** — maximum restriction. Every write requires confirmation. No outbound network.
-- **`permissive`** — log-only mode. Nothing blocked, everything recorded. Good for auditing what agents actually do.
+- `**default**` — sensible defaults for development. Standard dev commands allowed, dangerous patterns blocked, unknown network denied.
+- `**strict**` — maximum restriction. Every write requires confirmation. No outbound network.
+- `**permissive**` — log-only mode. Nothing blocked, everything recorded. Good for auditing what agents actually do.
 
 ### Default Policy Summary
 
-| | Allowed | Blocked | Asks First |
-| --- | --- | --- | --- |
-| **File read** | Workspace files | `.env`, secrets, `/proc`, SSH keys | — |
-| **File write** | Workspace files | System dirs, `.git/config`, SSH | `package.json`, lockfiles, Dockerfile |
-| **Shell** | `git`, `npm`, `cargo`, `python`, `node`, `make`, `curl`... | `sudo`, `su`, `chmod +s`, `dd`, `mkfs` | `rm -rf`, `git push --force`, `DROP TABLE` |
-| **Network** | Package registries, GitHub | Everything else (`*`) | New domains (first time) |
-| **Process** | — | `/proc/*/mem`, `/proc/*/environ` | — |
+
+|                | Allowed                                                    | Blocked                                | Asks First                                 |
+| -------------- | ---------------------------------------------------------- | -------------------------------------- | ------------------------------------------ |
+| **File read**  | Workspace files                                            | `.env`, secrets, `/proc`, SSH keys     | —                                          |
+| **File write** | Workspace files                                            | System dirs, `.git/config`, SSH        | `package.json`, lockfiles, Dockerfile      |
+| **Shell**      | `git`, `npm`, `cargo`, `python`, `node`, `make`, `curl`... | `sudo`, `su`, `chmod +s`, `dd`, `mkfs` | `rm -rf`, `git push --force`, `DROP TABLE` |
+| **Network**    | Package registries, GitHub                                 | Everything else (`*`)                  | New domains (first time)                   |
+| **Process**    | —                                                          | `/proc/*/mem`, `/proc/*/environ`       | —                                          |
+
 
 Plus pipe-to-shell patterns are always blocked: `curl ... | sh`, `wget ... | bash`.
 
@@ -184,13 +188,15 @@ The `${WORKSPACE}` variable is resolved to the current working directory at star
 
 The default policy includes five patterns derived from documented frontier model behavior (Anthropic's [Mythos system card](https://www.anthropic.com/research/the-claude-model-spec)):
 
-| Pattern | Detects | Action |
-| --- | --- | --- |
-| `credential_harvesting` | Reading `/proc` then environment data | HALT |
-| `sandbox_probing` | Process info → network config → external request | HALT |
-| `self_modification` | Reading then writing MCP/tool config | HALT |
-| `public_exfiltration` | Workspace reads then unknown network requests | PAUSE |
-| `history_tampering` | Git operations then writing `.git` internals | PAUSE |
+
+| Pattern                 | Detects                                          | Action |
+| ----------------------- | ------------------------------------------------ | ------ |
+| `credential_harvesting` | Reading `/proc` then environment data            | HALT   |
+| `sandbox_probing`       | Process info → network config → external request | HALT   |
+| `self_modification`     | Reading then writing MCP/tool config             | HALT   |
+| `public_exfiltration`   | Workspace reads then unknown network requests    | PAUSE  |
+| `history_tampering`     | Git operations then writing `.git` internals     | PAUSE  |
+
 
 Patterns match over a sliding window of recent actions. A HALT trips the circuit breaker and blocks all further actions. A PAUSE prompts the human.
 
@@ -230,11 +236,13 @@ All evaluation is deterministic. Sub-millisecond latency per decision.
 
 ### Interception Layers
 
-| Layer | Mechanism | What it catches |
-| --- | --- | --- |
+
+| Layer           | Mechanism                                                  | What it catches                                   |
+| --------------- | ---------------------------------------------------------- | ------------------------------------------------- |
 | **Shell shims** | PATH-prepended wrapper scripts → Unix socket IPC → gateway | Agent shell commands (`git`, `curl`, `npm`, etc.) |
-| **MCP proxy** | Stdio man-in-the-middle on JSON-RPC `tools/call` | MCP tool invocations |
-| **Escalation** | Inline terminal prompt on `pause` decisions | Human-in-the-loop confirmation |
+| **MCP proxy**   | Stdio man-in-the-middle on JSON-RPC `tools/call`           | MCP tool invocations                              |
+| **Escalation**  | Inline terminal prompt on `pause` decisions                | Human-in-the-loop confirmation                    |
+
 
 ### Audit Trail
 
@@ -258,7 +266,7 @@ brew install blackwall
 
 ## Protocol
 
-Blackwall implements an open protocol for AI agent containment. The full specification is at [`spec/PROTOCOL.md`](spec/PROTOCOL.md). Implementations in other languages are encouraged.
+Blackwall implements an open protocol for AI agent containment. The full specification is at `[spec/PROTOCOL.md](spec/PROTOCOL.md)`. Implementations in other languages are encouraged.
 
 ## License
 
