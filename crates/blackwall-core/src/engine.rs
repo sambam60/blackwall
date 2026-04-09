@@ -103,6 +103,9 @@ impl PolicyEngine {
             .pattern_matcher
             .record_and_check(&envelope.action, self.action_count)
         {
+            if matches!(pm, Decision::Deny { .. }) {
+                self.circuit_breaker.trip();
+            }
             return pm;
         }
 
@@ -187,12 +190,33 @@ impl PolicyEngine {
 
         for pattern in &self.policy.permissions.shell.deny_patterns {
             let parts: Vec<&str> = pattern.split('*').collect();
-            let all_match = parts.iter().all(|p| p.is_empty() || command.contains(p));
-            if all_match && parts.len() > 1 {
-                return Decision::Deny {
-                    reason: format!("command matches deny pattern '{}'", pattern),
-                    rule: "permissions.shell.deny_patterns".into(),
-                };
+            if parts.len() > 1 {
+                let mut pos = 0;
+                let mut matched = true;
+                for (i, seg) in parts.iter().enumerate() {
+                    if seg.is_empty() {
+                        continue;
+                    }
+                    match command[pos..].find(seg) {
+                        Some(found) => {
+                            if i == 0 && found != 0 {
+                                matched = false;
+                                break;
+                            }
+                            pos += found + seg.len();
+                        }
+                        None => {
+                            matched = false;
+                            break;
+                        }
+                    }
+                }
+                if matched {
+                    return Decision::Deny {
+                        reason: format!("command matches deny pattern '{}'", pattern),
+                        rule: "permissions.shell.deny_patterns".into(),
+                    };
+                }
             }
         }
 
@@ -225,7 +249,7 @@ impl PolicyEngine {
         let domain = &action.target;
 
         for allowed in &self.policy.permissions.network.allow {
-            if domain == allowed || domain.ends_with(allowed.as_str()) {
+            if domain == allowed || domain.ends_with(&format!(".{}", allowed)) {
                 return Decision::Allow;
             }
         }

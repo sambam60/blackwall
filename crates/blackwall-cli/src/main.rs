@@ -79,6 +79,14 @@ fn start(policy_name: Option<String>, workspace_arg: Option<PathBuf>) {
     let _gateway = BlackwallGateway::new(engine, audit);
 
     eprintln!();
+    eprintln!("\x1b[2m  :::::::::  :::            :::      ::::::::  :::    ::: :::       :::     :::     :::        :::        ");
+    eprintln!("  :+:    :+: :+:          :+: :+:   :+:    :+: :+:   :+:  :+:       :+:   :+: :+:   :+:        :+:        ");
+    eprintln!("  +:+    +:+ +:+         +:+   +:+  +:+        +:+  +:+   +:+       +:+  +:+   +:+  +:+        +:+        ");
+    eprintln!("  +#++:++#+  +#+        +#++:++#++: +#+        +#++:++    +#+  +:+  +#+ +#++:++#++: +#+        +#+        ");
+    eprintln!("  +#+    +#+ +#+        +#+     +#+ +#+        +#+  +#+   +#+ +#+#+ +#+ +#+     +#+ +#+        +#+        ");
+    eprintln!("  #+#    #+# #+#        #+#     #+# #+#    #+# #+#   #+#   #+#+# #+#+#  #+#     #+# #+#        #+#        ");
+    eprintln!("  #########  ########## ###     ###  ########  ###    ###   ###   ###   ###     ### ########## ##########\x1b[0m");
+    eprintln!();
     eprintln!(
         "  \x1b[1;97m■ blackwall\x1b[0m v{}",
         env!("CARGO_PKG_VERSION")
@@ -136,7 +144,12 @@ fn status() {
     }
 }
 
-fn logs(_follow: bool, session: Option<String>) {
+fn logs(follow: bool, session: Option<String>) {
+    if follow {
+        eprintln!("  \x1b[33m--follow is not yet implemented\x1b[0m");
+        std::process::exit(1);
+    }
+
     let log_dir = blackwall_dir().join("logs");
     if !log_dir.exists() {
         eprintln!("  \x1b[2mno logs found\x1b[0m");

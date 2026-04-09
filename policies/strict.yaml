@@ -140,7 +140,7 @@ scoring:
     "filesystem.read.sensitive": 20
     "filesystem.read.secret": 80
     "filesystem.write.secret": 150
-    "shell.exec.denied": 100
+    "shell.exec.unknown": 40
     "network.request.unknown": 60
     "process.read": 50
 

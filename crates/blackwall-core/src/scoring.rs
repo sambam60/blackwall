@@ -99,6 +99,10 @@ impl RiskScorer {
                 }
             }
         }
-        "normal".into()
+        match &action.tool {
+            ToolCategory::Network => "unknown".into(),
+            ToolCategory::Shell => "unknown".into(),
+            _ => "normal".into(),
+        }
     }
 }
