@@ -1,0 +1,155 @@
+version: "blackwall/policy-1.0"
+name: "strict"
+description: "Maximum restriction. Every write and shell command requires confirmation. No outbound network."
+
+labels:
+  sensitive:
+    - "/proc/**"
+    - "/sys/**"
+    - "**/.ssh/**"
+  secret:
+    - "**/.env"
+    - "**/.env.*"
+    - "**/credentials*"
+    - "**/secrets*"
+    - "**/*.pem"
+    - "**/*.key"
+
+permissions:
+  filesystem:
+    read:
+      allow:
+        - "${WORKSPACE}/**"
+      deny:
+        - "**/.env"
+        - "**/.env.*"
+        - "**/credentials*"
+        - "**/secrets*"
+        - "**/*.pem"
+        - "**/*.key"
+        - "/proc/**"
+        - "/sys/**"
+        - "/etc/**"
+        - "**/.ssh/**"
+      confirm: []
+    write:
+      allow: []
+      deny:
+        - "/etc/**"
+        - "/usr/**"
+        - "/bin/**"
+        - "/sbin/**"
+        - "**/.ssh/**"
+        - "**/.git/config"
+      confirm:
+        - "${WORKSPACE}/**"
+
+  shell:
+    allow:
+      - git
+      - cat
+      - ls
+      - echo
+      - grep
+      - rg
+      - find
+      - head
+      - tail
+      - diff
+      - wc
+    deny:
+      - sudo
+      - su
+      - "chmod +s"
+      - chown
+      - mount
+      - umount
+      - mkfs
+      - dd
+      - passwd
+      - curl
+      - wget
+      - docker
+    confirm:
+      - npm
+      - npx
+      - cargo
+      - pip
+      - python
+      - node
+      - make
+      - go
+      - "rm -rf"
+      - "git push"
+      - "git reset"
+    deny_patterns:
+      - "curl * | *sh"
+      - "wget * | *sh"
+
+  network:
+    allow: []
+    deny:
+      - "*"
+    confirm_new: false
+
+  process:
+    deny:
+      - "/proc/**"
+    deny_escalation: true
+
+patterns:
+  - name: credential_harvesting
+    description: "Sequential access to process info and environment data"
+    sequence:
+      - action: "filesystem.read"
+        path: "/proc/**"
+      - action: "filesystem.read"
+        path: "**env**"
+    within: 10
+    risk: 80
+    on_match: halt
+
+  - name: sandbox_probing
+    description: "Probing container or sandbox boundaries"
+    sequence:
+      - action: "filesystem.read"
+        path: "/proc/**"
+      - action: "shell.exec"
+        pattern: "*net*"
+    within: 10
+    risk: 90
+    on_match: halt
+
+  - name: self_modification
+    description: "Attempting to modify own configuration"
+    sequence:
+      - action: "filesystem.read"
+        path: "**mcp**"
+      - action: "filesystem.write"
+        path: "**mcp**"
+    within: 5
+    risk: 100
+    on_match: halt
+
+scoring:
+  window: 30
+  thresholds:
+    pause: 80
+    halt: 150
+  weights:
+    "filesystem.read.sensitive": 20
+    "filesystem.read.secret": 80
+    "filesystem.write.secret": 150
+    "shell.exec.denied": 100
+    "network.request.unknown": 60
+    "process.read": 50
+
+circuit_breakers:
+  max_denials_before_halt: 3
+  max_actions_per_minute: 30
+  max_actions_per_session: 1000
+
+escalation:
+  method: inline
+  timeout_seconds: 120
+  default_on_timeout: deny

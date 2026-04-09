@@ -1,0 +1,220 @@
+version: "blackwall/policy-1.0"
+name: "default"
+description: "Sensible defaults for development agents. Standard dev operations allowed within workspace, dangerous patterns blocked."
+
+labels:
+  sensitive:
+    - "/proc/**"
+    - "/sys/**"
+    - "**/.ssh/**"
+  secret:
+    - "**/.env"
+    - "**/.env.*"
+    - "**/credentials*"
+    - "**/secrets*"
+    - "**/*.pem"
+    - "**/*.key"
+
+permissions:
+  filesystem:
+    read:
+      allow:
+        - "${WORKSPACE}/**"
+      deny:
+        - "**/.env"
+        - "**/.env.*"
+        - "**/credentials*"
+        - "**/secrets*"
+        - "**/*.pem"
+        - "**/*.key"
+        - "/proc/*/mem"
+        - "/proc/*/environ"
+        - "/proc/*/maps"
+        - "/etc/shadow"
+        - "**/.ssh/id_*"
+      confirm: []
+    write:
+      allow:
+        - "${WORKSPACE}/**"
+      deny:
+        - "${WORKSPACE}/.git/config"
+        - "/etc/**"
+        - "/usr/**"
+        - "/bin/**"
+        - "/sbin/**"
+        - "**/.ssh/**"
+      confirm:
+        - "**/package.json"
+        - "**/Cargo.toml"
+        - "**/*.lock"
+        - "**/Dockerfile"
+        - "**/.github/**"
+
+  shell:
+    allow:
+      - git
+      - npm
+      - npx
+      - yarn
+      - pnpm
+      - cargo
+      - rustc
+      - pip
+      - pip3
+      - python
+      - python3
+      - node
+      - deno
+      - bun
+      - make
+      - cmake
+      - gcc
+      - go
+      - java
+      - javac
+      - docker
+      - cat
+      - ls
+      - echo
+      - grep
+      - rg
+      - find
+      - sed
+      - awk
+      - sort
+      - uniq
+      - wc
+      - head
+      - tail
+      - diff
+      - curl
+      - wget
+      - mkdir
+      - cp
+      - mv
+      - touch
+    deny:
+      - sudo
+      - su
+      - "chmod +s"
+      - chown
+      - mount
+      - umount
+      - mkfs
+      - dd
+      - passwd
+    confirm:
+      - "rm -rf"
+      - "git push --force"
+      - "git reset --hard"
+      - "docker rm"
+      - "docker rmi"
+      - "DROP TABLE"
+      - "DROP DATABASE"
+    deny_patterns:
+      - "curl * | *sh"
+      - "wget * | *sh"
+      - "curl * | *bash"
+      - "wget * | *bash"
+
+  network:
+    allow:
+      - registry.npmjs.org
+      - crates.io
+      - pypi.org
+      - files.pythonhosted.org
+      - github.com
+      - api.github.com
+      - raw.githubusercontent.com
+      - pkg.go.dev
+      - proxy.golang.org
+    deny:
+      - "*"
+    confirm_new: true
+
+  process:
+    deny:
+      - "/proc/*/mem"
+      - "/proc/*/environ"
+      - "/proc/*/maps"
+      - "/proc/*/cmdline"
+    deny_escalation: true
+
+patterns:
+  - name: credential_harvesting
+    description: "Sequential access to process info and environment data"
+    sequence:
+      - action: "filesystem.read"
+        path: "/proc/**"
+      - action: "filesystem.read"
+        path: "**env**"
+    within: 10
+    risk: 80
+    on_match: halt
+
+  - name: sandbox_probing
+    description: "Probing container or sandbox boundaries"
+    sequence:
+      - action: "filesystem.read"
+        path: "/proc/**"
+      - action: "shell.exec"
+        pattern: "*net*"
+      - action: "network.request"
+    within: 15
+    risk: 90
+    on_match: halt
+
+  - name: self_modification
+    description: "Attempting to modify own configuration or tool definitions"
+    sequence:
+      - action: "filesystem.read"
+        path: "**mcp**"
+      - action: "filesystem.write"
+        path: "**mcp**"
+    within: 5
+    risk: 100
+    on_match: halt
+
+  - name: public_exfiltration
+    description: "Reading workspace files then making unknown external requests"
+    sequence:
+      - action: "filesystem.read"
+        path: "${WORKSPACE}/**"
+      - action: "network.request"
+    within: 20
+    risk: 70
+    on_match: pause
+
+  - name: history_tampering
+    description: "Modifying version control internals to hide changes"
+    sequence:
+      - action: "shell.exec"
+        pattern: "git*"
+      - action: "filesystem.write"
+        path: "**/.git/**"
+    within: 5
+    risk: 85
+    on_match: pause
+
+scoring:
+  window: 50
+  thresholds:
+    pause: 150
+    halt: 250
+  weights:
+    "filesystem.read.sensitive": 10
+    "filesystem.read.secret": 50
+    "filesystem.write.secret": 100
+    "shell.exec.denied": 80
+    "network.request.unknown": 30
+    "process.read": 40
+
+circuit_breakers:
+  max_denials_before_halt: 5
+  max_actions_per_minute: 60
+  max_actions_per_session: 5000
+
+escalation:
+  method: inline
+  timeout_seconds: 300
+  default_on_timeout: deny

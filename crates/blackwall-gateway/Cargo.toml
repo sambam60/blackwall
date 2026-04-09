@@ -1,0 +1,9 @@
+[package]
+name = "blackwall-gateway"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Gateway and transport adapters for the Blackwall Protocol"
+
+[dependencies]
+blackwall-core = { path = "../blackwall-core" }

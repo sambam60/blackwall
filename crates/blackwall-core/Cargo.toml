@@ -1,0 +1,15 @@
+[package]
+name = "blackwall-core"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Core policy engine for the Blackwall Protocol — a deterministic execution firewall for AI agents"
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+serde_yaml = "0.9"
+chrono = { version = "0.4", features = ["serde"] }
+uuid = { version = "1", features = ["v4", "serde"] }
+globset = "0.4"
+thiserror = "1"
