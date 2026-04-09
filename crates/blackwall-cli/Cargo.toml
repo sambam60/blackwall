@@ -1,0 +1,19 @@
+[package]
+name = "blackwall-cli"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "CLI for the Blackwall Protocol — type `blackwall` and you're protected"
+
+[[bin]]
+name = "blackwall"
+path = "src/main.rs"
+
+[dependencies]
+blackwall-core = { path = "../blackwall-core" }
+blackwall-gateway = { path = "../blackwall-gateway" }
+clap = { version = "4", features = ["derive"] }
+ctrlc = "3"
+dirs = "5"
+uuid = { version = "1", features = ["v4"] }
+serde_json = "1"

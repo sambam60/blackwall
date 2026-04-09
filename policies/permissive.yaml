@@ -1,0 +1,65 @@
+version: "blackwall/policy-1.0"
+name: "permissive"
+description: "Log-only mode. Nothing is blocked, everything is recorded. Use for auditing without enforcement."
+
+labels:
+  sensitive:
+    - "/proc/**"
+    - "/sys/**"
+    - "**/.ssh/**"
+  secret:
+    - "**/.env"
+    - "**/.env.*"
+    - "**/credentials*"
+    - "**/secrets*"
+    - "**/*.pem"
+    - "**/*.key"
+
+permissions:
+  filesystem:
+    read:
+      allow:
+        - "**"
+      deny: []
+      confirm: []
+    write:
+      allow:
+        - "**"
+      deny: []
+      confirm: []
+
+  shell:
+    allow:
+      - "*"
+    deny: []
+    confirm: []
+    deny_patterns: []
+
+  network:
+    allow:
+      - "*"
+    deny: []
+    confirm_new: false
+
+  process:
+    deny: []
+    deny_escalation: false
+
+patterns: []
+
+scoring:
+  window: 50
+  thresholds:
+    pause: 99999
+    halt: 99999
+  weights: {}
+
+circuit_breakers:
+  max_denials_before_halt: 99999
+  max_actions_per_minute: 99999
+  max_actions_per_session: 99999
+
+escalation:
+  method: inline
+  timeout_seconds: 300
+  default_on_timeout: allow
