@@ -41,13 +41,15 @@ Every tool invocation is wrapped in an action envelope before reaching the gatew
 
 ### Tool Categories
 
-| Category | Operations | Target |
-|---|---|---|
-| `filesystem` | `read`, `write`, `delete` | File path |
-| `shell` | `exec` | Full command string |
-| `network` | `request` | Domain or URL |
-| `process` | `read`, `escalate` | Process path or resource |
-| `mcp` | `call` | Tool name |
+
+| Category     | Operations                | Target                   |
+| ------------ | ------------------------- | ------------------------ |
+| `filesystem` | `read`, `write`, `delete` | File path                |
+| `shell`      | `exec`                    | Full command string      |
+| `network`    | `request`                 | Domain or URL            |
+| `process`    | `read`, `escalate`        | Process path or resource |
+| `mcp`        | `call`                    | Tool name                |
+
 
 ## 3. Policy Schema
 
@@ -142,25 +144,30 @@ Scoring weights can reference labels: `"filesystem.read.secret": 50` assigns a r
 
 The gateway produces one of four decisions:
 
-| Decision | Effect |
-|---|---|
-| `allow` | Action proceeds. |
-| `deny` | Action is blocked. Agent receives an error. |
-| `pause` | Action is held. Human is presented with context and options. |
-| `log` | Action proceeds but is flagged in the audit trail. |
+
+| Decision | Effect                                                       |
+| -------- | ------------------------------------------------------------ |
+| `allow`  | Action proceeds.                                             |
+| `deny`   | Action is blocked. Agent receives an error.                  |
+| `pause`  | Action is held. Human is presented with context and options. |
+| `log`    | Action proceeds but is flagged in the audit trail.           |
+
 
 ## 5. Circuit Breaker Signals
 
 When a circuit breaker trips, the gateway emits one of:
 
-| Signal | Meaning |
-|---|---|
-| `HALT` | Immediate stop. No further actions. Human review required. |
-| `PAUSE` | Pause execution. Present context to human for decision. |
-| `DEGRADE` | Revoke specific permissions, continue with reduced scope. |
-| `ISOLATE` | Cut network access, restrict to read-only. |
+
+| Signal    | Meaning                                                    |
+| --------- | ---------------------------------------------------------- |
+| `HALT`    | Immediate stop. No further actions. Human review required. |
+| `PAUSE`   | Pause execution. Present context to human for decision.    |
+| `DEGRADE` | Revoke specific permissions, continue with reduced scope.  |
+| `ISOLATE` | Cut network access, restrict to read-only.                 |
+
 
 Triggers:
+
 - Denial count exceeds threshold
 - Action rate exceeds window limit
 - Anti-pattern match with severity >= critical

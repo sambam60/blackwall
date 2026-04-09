@@ -64,6 +64,9 @@ enum Commands {
         command: Vec<String>,
     },
 
+    /// Add Blackwall shell hook to your profile (one-time setup)
+    Init,
+
     /// Evaluate a single action via IPC (used internally by shell shims)
     #[command(name = "eval-action", hide = true)]
     EvalAction {
@@ -91,6 +94,7 @@ fn main() {
         Some(Commands::Logs { follow, session }) => logs(follow, session),
         Some(Commands::Exec { command }) => exec(command, cli.policy, cli.workspace),
         Some(Commands::ProxyMcp { command }) => proxy_mcp(command, cli.policy, cli.workspace),
+        Some(Commands::Init) => init(),
         Some(Commands::EvalAction { socket, real, args }) => eval_action(socket, real, args),
     }
 }
@@ -130,22 +134,42 @@ fn start(policy_name: Option<String>, workspace_arg: Option<PathBuf>) {
     let sid = session_id.clone();
     std::thread::spawn(move || ipc.run(gw_ipc, sid));
 
-    print_banner(&policy, &session_id, &workspace, &env);
-    eprintln!(
-        "  \x1b[36mshell shims:\x1b[0m  export PATH=\"{}:$PATH\"",
-        shim_path_display
+    // Write sourceable env file — any shell that sources ~/.blackwall/env
+    // automatically gets the shimmed PATH (including Cursor terminals)
+    let env_file = blackwall_dir().join("env");
+    let env_contents = format!(
+        "export PATH=\"{}:$PATH\"\nexport BLACKWALL_SESSION=\"{}\"\nexport BLACKWALL_SOCKET=\"{}\"\n",
+        shim_path_display, session_id, socket_path.display()
     );
-    eprintln!("  \x1b[36mmcp proxy:\x1b[0m    blackwall proxy-mcp -- <server-command>");
+    let _ = std::fs::write(&env_file, &env_contents);
+
+    print_banner(&policy, &session_id, &workspace, &env);
+
+    let has_hook = shell_hook_installed();
+    if has_hook {
+        eprintln!("  \x1b[32m●\x1b[0m shell hook active — new terminals are protected");
+    } else {
+        eprintln!("  \x1b[33m○\x1b[0m shell hook not installed — run \x1b[1mblackwall init\x1b[0m for auto-protection");
+        eprintln!(
+            "    or manually: export PATH=\"{}:$PATH\"",
+            shim_path_display
+        );
+    }
+    eprintln!(
+        "  \x1b[36mmcp proxy:\x1b[0m blackwall proxy-mcp -- <server-command>"
+    );
     eprintln!();
     eprintln!("  \x1b[2mgateway active — press ctrl+c to stop\x1b[0m");
     eprintln!();
 
     let socket_cleanup = socket_path.clone();
     let pid_cleanup = pid_path.clone();
+    let env_cleanup = env_file.clone();
     let (tx, rx) = std::sync::mpsc::channel();
     ctrlc::set_handler(move || {
         let _ = std::fs::remove_file(&socket_cleanup);
         let _ = std::fs::remove_file(&pid_cleanup);
+        let _ = std::fs::remove_file(&env_cleanup);
         let _ = std::fs::remove_dir_all(&shim_path_cleanup);
         tx.send(()).ok();
     })
@@ -548,6 +572,8 @@ fn off() {
             }
         }
     }
+
+    let _ = std::fs::remove_file(blackwall_dir().join("env"));
 }
 
 fn status() {
@@ -626,6 +652,95 @@ fn status() {
             size
         );
     }
+}
+
+// ── init ───────────────────────────────────────────────────────────────
+
+const SHELL_HOOK: &str = r#"[ -f "$HOME/.blackwall/env" ] && source "$HOME/.blackwall/env""#;
+
+fn init() {
+    let home = dirs::home_dir().expect("cannot find home directory");
+    let shell = std::env::var("SHELL").unwrap_or_default();
+
+    let rc_file = if shell.ends_with("zsh") {
+        home.join(".zshrc")
+    } else if shell.ends_with("bash") {
+        if home.join(".bash_profile").exists() {
+            home.join(".bash_profile")
+        } else {
+            home.join(".bashrc")
+        }
+    } else if shell.ends_with("fish") {
+        eprintln!("  \x1b[33mfish shell detected — add this to ~/.config/fish/config.fish:\x1b[0m");
+        eprintln!();
+        eprintln!(
+            "    if test -f $HOME/.blackwall/env; source $HOME/.blackwall/env; end"
+        );
+        return;
+    } else {
+        eprintln!("  \x1b[33munknown shell '{}' — add this to your shell profile:\x1b[0m", shell);
+        eprintln!();
+        eprintln!("    {}", SHELL_HOOK);
+        return;
+    };
+
+    if let Ok(existing) = std::fs::read_to_string(&rc_file) {
+        if existing.contains(".blackwall/env") {
+            eprintln!(
+                "  \x1b[32m✓\x1b[0m shell hook already present in {}",
+                rc_file.display()
+            );
+            return;
+        }
+    }
+
+    let mut file = std::fs::OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open(&rc_file)
+        .unwrap_or_else(|e| {
+            eprintln!(
+                "  \x1b[31merror:\x1b[0m cannot write to {}: {}",
+                rc_file.display(),
+                e
+            );
+            std::process::exit(1);
+        });
+
+    use std::io::Write;
+    writeln!(file).ok();
+    writeln!(file, "# Blackwall — AI agent firewall").ok();
+    writeln!(file, "{}", SHELL_HOOK).ok();
+
+    eprintln!(
+        "  \x1b[32m✓\x1b[0m added shell hook to \x1b[1m{}\x1b[0m",
+        rc_file.display()
+    );
+    eprintln!();
+    eprintln!("  now run: \x1b[1msource {}\x1b[0m", rc_file.display());
+    eprintln!(
+        "  then:    \x1b[1mblackwall\x1b[0m to start the gateway"
+    );
+    eprintln!();
+    eprintln!("  when blackwall is running, every new terminal is automatically protected.");
+    eprintln!("  agent shells (Cursor, Claude Code) will have commands intercepted.");
+}
+
+fn shell_hook_installed() -> bool {
+    let home = match dirs::home_dir() {
+        Some(h) => h,
+        None => return false,
+    };
+
+    for rc in &[".zshrc", ".bashrc", ".bash_profile"] {
+        let path = home.join(rc);
+        if let Ok(content) = std::fs::read_to_string(&path) {
+            if content.contains(".blackwall/env") {
+                return true;
+            }
+        }
+    }
+    false
 }
 
 // ── helpers ────────────────────────────────────────────────────────────
