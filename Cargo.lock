@@ -97,6 +97,7 @@ dependencies = [
  "clap",
  "ctrlc",
  "dirs",
+ "serde_json",
  "uuid",
 ]
 
@@ -118,6 +119,8 @@ name = "blackwall-gateway"
 version = "0.1.0"
 dependencies = [
  "blackwall-core",
+ "dirs",
+ "serde_json",
 ]
 
 [[package]]

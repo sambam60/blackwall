@@ -7,3 +7,5 @@ description = "Gateway and transport adapters for the Blackwall Protocol"
 
 [dependencies]
 blackwall-core = { path = "../blackwall-core" }
+serde_json = "1"
+dirs = "5"
