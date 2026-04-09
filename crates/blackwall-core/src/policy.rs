@@ -239,7 +239,7 @@ impl Default for EscalationConfig {
 
 impl Policy {
     pub fn default_policy(workspace: &Path) -> Self {
-        let yaml = include_str!("../../../policies/default.yaml");
+        let yaml = include_str!("../policies/default.yaml");
         let mut policy: Policy =
             serde_yaml::from_str(yaml).expect("embedded default policy is invalid");
         policy.resolve_workspace(workspace);
@@ -247,7 +247,7 @@ impl Policy {
     }
 
     pub fn strict_policy(workspace: &Path) -> Self {
-        let yaml = include_str!("../../../policies/strict.yaml");
+        let yaml = include_str!("../policies/strict.yaml");
         let mut policy: Policy =
             serde_yaml::from_str(yaml).expect("embedded strict policy is invalid");
         policy.resolve_workspace(workspace);
@@ -255,7 +255,7 @@ impl Policy {
     }
 
     pub fn permissive_policy(workspace: &Path) -> Self {
-        let yaml = include_str!("../../../policies/permissive.yaml");
+        let yaml = include_str!("../policies/permissive.yaml");
         let mut policy: Policy =
             serde_yaml::from_str(yaml).expect("embedded permissive policy is invalid");
         policy.resolve_workspace(workspace);
