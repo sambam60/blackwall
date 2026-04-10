@@ -25,8 +25,8 @@ export function CopyCommand({ commands }: { commands: CommandTab[] }) {
   if (!activeCommand) return null;
 
   return (
-    <div className="inline-flex flex-col gap-2">
-      <div className="inline-flex items-center gap-1 text-xs font-mono">
+    <div className="flex flex-col gap-2 w-full sm:w-auto">
+      <div className="flex flex-wrap items-center gap-1 text-xs font-mono">
         {commands.map((item) => {
           const isActive = item.id === activeCommand.id;
           return (
@@ -49,8 +49,8 @@ export function CopyCommand({ commands }: { commands: CommandTab[] }) {
         })}
       </div>
 
-      <div className="inline-flex items-center gap-3 bg-card border border-border-light rounded-lg px-5 py-3 text-sm font-mono">
-        <span className="text-muted-darker">$</span>
+      <div className="flex items-center gap-3 bg-card border border-border-light rounded-lg px-4 sm:px-5 py-3 text-sm font-mono overflow-x-auto">
+        <span className="text-muted-darker shrink-0">$</span>
         <span className="text-foreground/80 select-all">{activeCommand.command}</span>
         <button
           onClick={handleCopy}

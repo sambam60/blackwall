@@ -24,7 +24,7 @@ export default function Home() {
 function Nav() {
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-sm border-b border-border">
-      <div className="max-w-[1200px] mx-auto px-6 h-12 flex items-center gap-8">
+      <div className="max-w-[1200px] mx-auto px-6 h-12 flex items-center justify-between">
         <Link href="/" className="shrink-0">
           <BrandLogo />
         </Link>
@@ -45,6 +45,10 @@ function Nav() {
             </a>
           ))}
         </div>
+        <div className="flex md:hidden items-center gap-5">
+          <a href="#features" className="text-[11px] font-medium uppercase tracking-[0.08em] text-muted hover:text-foreground transition-colors">Features</a>
+          <a href="https://github.com/sambam60/blackwall" target="_blank" rel="noopener noreferrer" className="text-[11px] font-medium uppercase tracking-[0.08em] text-muted hover:text-foreground transition-colors">GitHub</a>
+        </div>
       </div>
     </nav>
   );
@@ -57,8 +61,8 @@ function Hero() {
     <section className="relative min-h-[100svh] overflow-hidden">
       <HeroArtwork />
 
-      <div className="relative z-10 min-h-[100svh] flex items-center lg:justify-end px-6">
-        <div className="w-full lg:w-1/2 py-32">
+      <div className="relative z-10 min-h-[100svh] flex items-center justify-center lg:justify-end px-6">
+        <div className="w-full lg:w-[62%] lg:pl-8 pt-24 pb-16 lg:py-32">
           <div className="inline-flex items-center gap-2 text-xs text-muted/80 rounded-full py-1.5 mb-8 font-mono">
             <span className="w-1.5 h-1.5 rounded-full bg-green animate-pulse" />
             OPEN SOURCE &middot; v0.1.0
@@ -103,7 +107,7 @@ function Features() {
             <p className="text-muted text-sm leading-relaxed mb-6">
               PATH-prepended shims catch every agent command before execution. Git, curl, npm, python, and more. The real binary only runs after policy approval.
             </p>
-            <div className="bg-background rounded-lg border border-border p-4 font-mono text-xs space-y-1.5">
+            <div className="bg-background rounded-lg border border-border p-4 font-mono text-xs space-y-1.5 overflow-x-auto">
               <LogLine time="14:23:01" icon="✓" color="text-green" label="shell.exec" value="git status" />
               <LogLine time="14:23:03" icon="✓" color="text-green" label="shell.exec" value="cargo build" />
               <LogLine time="14:23:09" icon="✓" color="text-green" label="shell.exec" value="npm install express" />
@@ -117,7 +121,7 @@ function Features() {
             <p className="text-muted text-sm leading-relaxed mb-6">
               Stdio man-in-the-middle on JSON-RPC <code className="text-foreground/70 bg-white/5 px-1.5 py-0.5 rounded text-xs">tools/call</code>. Every MCP tool invocation evaluated before reaching the server.
             </p>
-            <div className="bg-background rounded-lg border border-border p-4 font-mono text-xs space-y-1.5">
+            <div className="bg-background rounded-lg border border-border p-4 font-mono text-xs space-y-1.5 overflow-x-auto">
               <LogLine time="14:23:20" icon="·" color="text-muted" label="mcp.tool_call" value="read_file" />
               <LogLine time="14:23:22" icon="✗" color="text-red" label="mcp.tool_call" value="execute_command" />
               <LogLine time="14:23:25" icon="·" color="text-muted" label="mcp.tool_call" value="search_files" />
@@ -141,8 +145,8 @@ function Features() {
             <p className="text-muted text-sm leading-relaxed mb-6">
               When the gateway is uncertain, it pauses and prompts the human inline. Allow, deny, or end the session entirely.
             </p>
-            <div className="bg-background rounded-lg border border-border p-4 font-mono text-xs">
-              <div className="text-amber mb-1.5">⏸ PAUSE: confirmation required</div>
+            <div className="bg-background rounded-lg border border-border p-4 font-mono text-xs overflow-x-auto">
+              <div className="text-amber mb-1.5 min-w-max">⏸ PAUSE: confirmation required</div>
               <div className="border-l-2 border-border-light pl-3 space-y-1 text-muted mb-3">
                 <div>shell.exec <span className="text-foreground/70">rm -rf node_modules</span></div>
                 <div>reason: <span className="text-foreground/50">matches confirmation rule &apos;rm -rf&apos;</span></div>
@@ -203,7 +207,7 @@ function Features() {
             <p className="text-muted text-sm leading-relaxed mb-6">
               Append-only JSONL logs for every action evaluation. Session ID, timestamps, decisions, reasons, sub-millisecond latency. Tail live or query after.
             </p>
-            <div className="bg-background rounded-lg border border-border p-4 font-mono text-[11px] space-y-1 overflow-x-auto">
+            <div className="bg-background rounded-lg border border-border p-4 font-mono text-[11px] space-y-1 overflow-x-auto whitespace-nowrap">
               <div className="text-muted-darker">~/.blackwall/logs/7f3a28.jsonl</div>
               <div className="mt-2 text-foreground/60">
                 {`{"ts":"2025-01-15T14:23:01Z","session":"7f3a28","seq":1,"tool":"shell","op":"exec","target":"git status","decision":"`}<span className="text-green">allow</span>{`","latency_us":42}`}
@@ -248,7 +252,7 @@ function FeatureCard({
 
 function LogLine({ time, icon, color, label, value }: { time: string; icon: string; color: string; label: string; value: string }) {
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-2 min-w-max">
       <span className="text-muted-darker w-14 shrink-0">{time}</span>
       <span className={`${color} w-3 shrink-0 text-center`}>{icon}</span>
       <span className="text-muted w-24 shrink-0">{label}</span>
@@ -281,7 +285,7 @@ function ConfigSection() {
               <span className="w-3 h-3 rounded-full bg-[#28c840]" />
               <span className="ml-3 text-xs text-muted-darker font-mono">custom-policy.yaml</span>
             </div>
-            <div className="p-5 font-mono text-[13px] leading-relaxed">
+            <div className="p-5 font-mono text-[13px] leading-relaxed overflow-x-auto">
               <Line><K>version</K>: <V>&quot;blackwall/policy-1.0&quot;</V></Line>
               <Line><K>name</K>: <V>&quot;production-deploy&quot;</V></Line>
               <br />
@@ -450,7 +454,7 @@ function IntegrationCard({ name, desc, lines }: {
         <h3 className="font-semibold text-lg mb-1">{name}</h3>
         <p className="text-sm text-muted leading-relaxed">{desc}</p>
       </div>
-      <div className="border-t border-border bg-background p-4 font-mono text-xs leading-relaxed whitespace-pre">
+      <div className="border-t border-border bg-background p-4 font-mono text-xs leading-relaxed whitespace-pre overflow-x-auto">
         {lines.map((line, i) => (
           <div key={i} className={line.dim ? "text-muted-darker" : line.highlight ? "text-foreground/80" : "text-foreground/60"}>
             {line.text || "\u00A0"}
@@ -553,7 +557,7 @@ function Architecture() {
             <span className="w-3 h-3 rounded-full bg-[#28c840]" />
             <span className="ml-3 text-xs text-muted-darker font-mono">blackwall / gateway</span>
           </div>
-          <div className="p-5 font-mono text-[13px] text-foreground/60 leading-relaxed">
+          <div className="p-5 font-mono text-[13px] text-foreground/60 leading-relaxed overflow-x-auto">
             <div className="text-foreground/80">■ blackwall v0.1.0</div>
             <div className="pl-2">policy: default | session: 7f3a28</div>
             <div className="pl-2">workspace: /Users/you/project</div>
@@ -576,7 +580,7 @@ function Architecture() {
 
 function CTA() {
   return (
-    <section className="py-32 px-6 border-t border-border relative">
+    <section className="py-14 px-6 relative">
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-gradient-radial from-white/[0.02] to-transparent rounded-full blur-3xl" />
       </div>
@@ -600,7 +604,6 @@ function Footer() {
       <div className="max-w-[1200px] mx-auto flex flex-col sm:flex-row items-center justify-between gap-6">
         <div className="flex items-center gap-4">
           <BrandLogo />
-          <span className="text-xs text-muted-darker">MIT License</span>
         </div>
         <div className="flex items-center gap-6 text-[13px] text-muted">
           <a href="https://github.com/sambam60/blackwall" target="_blank" rel="noopener noreferrer" className="hover:text-foreground transition-colors">GitHub</a>
