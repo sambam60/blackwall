@@ -1,5 +1,13 @@
 # Blackwall
 
+```
+  .-#+-+#--#.  +-.         ..-##..    .+.##-+##-..-.-.  .##-.  -##   .###   .##.  ####.   .##.     +#+     
+  .+#+--++##-..##.         -+###+-.   +#++-..-+...++#+--##-.    ##+  ####-  ##-  ###-##.  .##.     ###     
+  .+#+.---+#-..##.        -##+--###   #+.     .  .+######+      .##.-## ## ###  ###  -##. .##.     ###     
+  -###-+#+###--###++-....-##########..###+.. -#---####++###..    .####. +####  ##########..#######-########
+   .-......-.  .----.... ...      ..  ...--..--. ....    ...      ....   ...   ..      ... ....... ........
+```
+
 **A deterministic execution firewall for AI agents.**
 
 Blackwall sits between AI agents and their tools. Every action — file write, shell command, network request, MCP tool call — passes through a deterministic policy engine before it executes. No silent side effects. Every invocation auditable. The gateway is rule-based, not AI. It can't be prompt-injected. It can't be socially engineered. It runs at the speed of pattern matching, not inference.
