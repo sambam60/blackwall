@@ -1,8 +1,8 @@
 class Blackwall < Formula
   desc "A deterministic execution firewall for AI agents"
   homepage "https://github.com/sambam60/blackwall"
-  url "https://github.com/sambam60/blackwall/archive/refs/tags/v0.1.0.tar.gz"
-  sha256 "943b791c1b0ee562f087ca5ebbf7ba459fafcd9f3a694353c85a4a5ff7669dc7"
+  url "https://github.com/sambam60/blackwall/archive/refs/tags/v0.1.1.tar.gz"
+  sha256 "3360a0fe15782bf6fd48ad133115adf39553664a2579d14a5f3fd6589bf45cfa"
   license "MIT"
   head "https://github.com/sambam60/blackwall.git", branch: "main"
 
