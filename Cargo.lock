@@ -101,7 +101,7 @@ checksum = "843867be96c8daad0d758b57df9392b6d8d271134fce549de6ce169ff98a92af"
 
 [[package]]
 name = "blackwall-cli"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "atty",
  "blackwall-core",
@@ -115,7 +115,7 @@ dependencies = [
 
 [[package]]
 name = "blackwall-core"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "chrono",
  "globset",
@@ -128,7 +128,7 @@ dependencies = [
 
 [[package]]
 name = "blackwall-gateway"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "blackwall-core",
  "dirs",

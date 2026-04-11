@@ -3,6 +3,15 @@ import { HeroArtwork } from "./hero-artwork";
 import { ThemeToggle } from "./theme-toggle";
 import Link from "next/link";
 
+/** Gateway startup ASCII — keep in sync with `print_banner` in `crates/blackwall-cli/src/main.rs`. */
+const BLACKWALL_CLI_BANNER_ART = [
+  "  .-#+-+#--#.  +-.         ..-##..    .+.##-+##-..-.-.  .##-.  -##   .###   .##.  ####.   .##.     +#+     ",
+  "  .+#+--++##-..##.         -+###+-.   +#++-..-+...++#+--##-.    ##+  ####-  ##-  ###-##.  .##.     ###     ",
+  "  .+#+.---+#-..##.        -##+--###   #+.     .  .+######+      .##.-## ## ###  ###  -##. .##.     ###     ",
+  "  -###-+#+###--###++-....-##########..###+.. -#---####++###..    .####. +####  ##########..#######-########",
+  "   .-......-.  .----.... ...      ..  ...--..--. ....    ...      ....   ...   ..      ... ....... ........",
+].join("\n");
+
 export default function Home() {
   return (
     <main className="min-h-screen overflow-x-hidden">
@@ -69,7 +78,7 @@ function Hero() {
         <div className="w-full lg:w-[62%] lg:pl-8 pt-24 pb-16 lg:py-32">
           <div className="inline-flex items-center gap-2 text-xs text-muted/80 rounded-full py-1.5 mb-8 font-mono">
             <span className="w-1.5 h-1.5 rounded-full bg-green animate-pulse" />
-            OPEN SOURCE &middot; v0.1.0
+            OPEN SOURCE &middot; v0.1.1
           </div>
           <h1 className="text-[clamp(2.5rem,5.5vw,4.5rem)] font-bold tracking-[-0.03em] leading-[1.08] mb-6">
             The execution firewall
@@ -562,17 +571,22 @@ function Architecture() {
             <span className="ml-3 text-xs text-muted-darker font-mono">blackwall / gateway</span>
           </div>
           <div className="p-5 font-mono text-[11px] sm:text-[13px] text-foreground/60 leading-relaxed overflow-x-auto">
-            <div className="text-foreground/80">■ blackwall v0.1.0</div>
+            <pre className="m-0 mb-4 text-muted-darker/90 whitespace-pre font-inherit text-[10px] sm:text-[12px] leading-tight">
+              {BLACKWALL_CLI_BANNER_ART}
+            </pre>
+            <div className="text-foreground/80">■ blackwall v0.1.1</div>
             <div className="pl-2">policy: default | session: 7f3a28</div>
             <div className="pl-2">workspace: /Users/you/project</div>
             <div className="pl-2">log: ~/.blackwall/logs/7f3a28.jsonl</div>
             <br />
             <div className="pl-2">detected: mcp (3 servers), cursor, git</div>
             <br />
-            <div className="pl-2"><span className="text-green">●</span> shell hook active, new terminals are protected</div>
+            <div className="pl-2">
+              <span className="text-green">●</span> shell hook active — new terminals are protected
+            </div>
             <div className="pl-2">mcp proxy: blackwall proxy-mcp -- &lt;server-command&gt;</div>
             <br />
-            <div className="pl-2">gateway active, press ctrl+c to stop</div>
+            <div className="pl-2">gateway active — press ctrl+c to stop</div>
           </div>
         </div>
       </div>

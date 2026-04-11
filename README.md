@@ -28,7 +28,13 @@ blackwall
 When the gateway is running, every new terminal session automatically gets Blackwall's shell shims injected into its PATH. Agent commands are intercepted and evaluated against your policy before they execute.
 
 ```
-■ blackwall v0.1.0
+  .-#+-+#--#.  +-.         ..-##..    .+.##-+##-..-.-.  .##-.  -##   .###   .##.  ####.   .##.     +#+     
+  .+#+--++##-..##.         -+###+-.   +#++-..-+...++#+--##-.    ##+  ####-  ##-  ###-##.  .##.     ###     
+  .+#+.---+#-..##.        -##+--###   #+.     .  .+######+      .##.-## ## ###  ###  -##. .##.     ###     
+  -###-+#+###--###++-....-##########..###+.. -#---####++###..    .####. +####  ##########..#######-########
+   .-......-.  .----.... ...      ..  ...--..--. ....    ...      ....   ...   ..      ... ....... ........
+
+■ blackwall v0.1.1
   policy: default | session: 7f3a28
   workspace: /Users/you/project
   log: ~/.blackwall/logs/7f3a28.jsonl
