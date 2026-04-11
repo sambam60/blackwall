@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { ThemeProvider } from "./theme-provider";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -18,6 +19,8 @@ export const metadata: Metadata = {
     "Blackwall sits between AI agents and their tools. Every action passes through a deterministic policy engine before it executes. Rule-based. Auditable. Unpromptable.",
 };
 
+const themeScript = `(function(){try{var t=localStorage.getItem("theme");if(t==="dark"||(!t&&window.matchMedia("(prefers-color-scheme:dark)").matches))document.documentElement.classList.add("dark")}catch(e){}})()`;
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -27,8 +30,14 @@ export default function RootLayout({
     <html
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+      suppressHydrationWarning
     >
-      <body>{children}</body>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+      </head>
+      <body>
+        <ThemeProvider>{children}</ThemeProvider>
+      </body>
     </html>
   );
 }

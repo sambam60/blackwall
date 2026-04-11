@@ -39,7 +39,7 @@ export function CopyCommand({ commands }: { commands: CommandTab[] }) {
               className={`rounded px-2.5 py-1 transition-colors ${
                 isActive
                   ? "bg-foreground text-background border border-foreground"
-                  : "text-muted hover:text-foreground border border-border-light hover:bg-white/5"
+                  : "text-muted hover:text-foreground border border-border-light hover:bg-surface-tint"
               }`}
               aria-label={`Use ${item.label} install command`}
             >

@@ -1,5 +1,6 @@
 import { CopyCommand } from "./copy-command";
 import { HeroArtwork } from "./hero-artwork";
+import { ThemeToggle } from "./theme-toggle";
 import Link from "next/link";
 
 export default function Home() {
@@ -24,10 +25,12 @@ export default function Home() {
 function Nav() {
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-sm border-b border-border">
-      <div className="max-w-[1200px] mx-auto px-6 h-12 flex items-center justify-between">
-        <Link href="/" className="shrink-0">
-          <BrandLogo />
-        </Link>
+      <div className="px-6 h-12 flex items-center">
+        <div className="shrink-0 lg:w-[39%]">
+          <Link href="/">
+            <BrandLogo />
+          </Link>
+        </div>
         <div className="hidden md:flex items-center h-full">
           {[
             { label: "Features", href: "#features" },
@@ -45,9 +48,10 @@ function Nav() {
             </a>
           ))}
         </div>
-        <div className="flex md:hidden items-center gap-5">
-          <a href="#features" className="text-[11px] font-medium uppercase tracking-[0.08em] text-muted hover:text-foreground transition-colors">Features</a>
-          <a href="https://github.com/sambam60/blackwall" target="_blank" rel="noopener noreferrer" className="text-[11px] font-medium uppercase tracking-[0.08em] text-muted hover:text-foreground transition-colors">GitHub</a>
+        <div className="ml-auto flex items-center gap-4">
+          <a href="#features" className="md:hidden text-[11px] font-medium uppercase tracking-[0.08em] text-muted hover:text-foreground transition-colors">Features</a>
+          <a href="https://github.com/sambam60/blackwall" target="_blank" rel="noopener noreferrer" className="md:hidden text-[11px] font-medium uppercase tracking-[0.08em] text-muted hover:text-foreground transition-colors">GitHub</a>
+          <ThemeToggle />
         </div>
       </div>
     </nav>
@@ -119,7 +123,7 @@ function Features() {
           {/* 02 - MCP Proxy */}
           <FeatureCard num="02" title="MCP Tool Proxy" subtitle="Intercept every tool call.">
             <p className="text-muted text-sm leading-relaxed mb-6">
-              Stdio man-in-the-middle on JSON-RPC <code className="text-foreground/70 bg-white/5 px-1.5 py-0.5 rounded text-xs">tools/call</code>. Every MCP tool invocation evaluated before reaching the server.
+              Stdio man-in-the-middle on JSON-RPC <code className="text-foreground/70 bg-surface-tint px-1.5 py-0.5 rounded text-xs">tools/call</code>. Every MCP tool invocation evaluated before reaching the server.
             </p>
             <div className="bg-background rounded-lg border border-border p-4 font-mono text-xs space-y-1.5 overflow-x-auto">
               <LogLine time="14:23:20" icon="·" color="text-muted" label="mcp.tool_call" value="read_file" />
@@ -133,9 +137,9 @@ function Features() {
             <p className="text-muted text-sm leading-relaxed mb-5">
               Three built-in profiles: default, strict, and permissive. Or write your own in YAML. Sub-millisecond evaluation per action.
             </p>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               {["default", "strict", "permissive", "custom.yaml"].map((p) => (
-                <span key={p} className="text-[11px] font-mono px-2.5 py-1 rounded-md bg-white/5 border border-border-light text-muted">{p}</span>
+                <span key={p} className="text-[11px] font-mono px-2.5 py-1 rounded-md bg-surface-tint border border-border-light text-muted">{p}</span>
               ))}
             </div>
           </FeatureCard>
@@ -151,10 +155,10 @@ function Features() {
                 <div>shell.exec <span className="text-foreground/70">rm -rf node_modules</span></div>
                 <div>reason: <span className="text-foreground/50">matches confirmation rule &apos;rm -rf&apos;</span></div>
               </div>
-              <div className="flex gap-2 mt-3">
+              <div className="flex flex-wrap gap-2 mt-3">
                 <span className="px-3 py-1.5 rounded bg-green/10 text-green border border-green/20 text-[11px]">allow (a)</span>
                 <span className="px-3 py-1.5 rounded bg-red/10 text-red border border-red/20 text-[11px]">deny (d)</span>
-                <span className="px-3 py-1.5 rounded bg-white/5 text-muted border border-border-light text-[11px]">end session (x)</span>
+                <span className="px-3 py-1.5 rounded bg-surface-tint text-muted border border-border-light text-[11px]">end session (x)</span>
               </div>
             </div>
           </FeatureCard>
@@ -164,14 +168,14 @@ function Features() {
             <p className="text-muted text-sm leading-relaxed mb-5">
               Sliding window detection catches credential harvesting, sandbox probing, self-modification, data exfiltration, and history tampering.
             </p>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-1 min-[420px]:grid-cols-2 gap-2">
               {[
                 { label: "credential_harvesting", action: "HALT" },
                 { label: "sandbox_probing", action: "HALT" },
                 { label: "self_modification", action: "HALT" },
                 { label: "public_exfiltration", action: "PAUSE" },
               ].map((p) => (
-                <div key={p.label} className="flex items-center justify-between bg-background rounded-md border border-border px-3 py-2">
+                <div key={p.label} className="flex items-center justify-between bg-background rounded-md border border-border px-3 py-2 min-w-0">
                   <span className="text-[10px] font-mono text-muted truncate mr-2">{p.label}</span>
                   <span className={`text-[10px] font-mono shrink-0 ${p.action === "HALT" ? "text-red" : "text-amber"}`}>{p.action}</span>
                 </div>
@@ -237,7 +241,7 @@ function FeatureCard({
   className?: string;
 }) {
   return (
-    <div className={`bg-card border border-border rounded-xl p-6 flex flex-col ${className}`}>
+    <div className={`bg-card border border-border rounded-xl p-6 flex flex-col overflow-hidden ${className}`}>
       <div className="flex items-start justify-between mb-4">
         <div>
           <span className="text-xs font-mono text-muted-darker">{num}</span>
@@ -245,7 +249,7 @@ function FeatureCard({
           <p className="text-sm text-muted">{subtitle}</p>
         </div>
       </div>
-      <div className="flex-1">{children}</div>
+      <div className="flex-1 min-w-0">{children}</div>
     </div>
   );
 }
@@ -285,7 +289,7 @@ function ConfigSection() {
               <span className="w-3 h-3 rounded-full bg-[#28c840]" />
               <span className="ml-3 text-xs text-muted-darker font-mono">custom-policy.yaml</span>
             </div>
-            <div className="p-5 font-mono text-[13px] leading-relaxed overflow-x-auto">
+            <div className="p-5 font-mono text-[11px] sm:text-[13px] leading-relaxed overflow-x-auto">
               <Line><K>version</K>: <V>&quot;blackwall/policy-1.0&quot;</V></Line>
               <Line><K>name</K>: <V>&quot;production-deploy&quot;</V></Line>
               <br />
@@ -490,16 +494,16 @@ function AntiPatterns() {
             { name: "history_tampering", desc: "Git operations then writing .git internals", action: "PAUSE", steps: ["git log", "→", "write .git/"] },
           ].map((p) => (
             <div key={p.name} className="bg-card border border-border rounded-xl p-6">
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-xs font-mono text-muted">{p.name}</span>
-                <span className={`text-[10px] font-mono font-medium px-2 py-0.5 rounded ${
+              <div className="flex items-center justify-between gap-2 mb-3 min-w-0">
+                <span className="text-xs font-mono text-muted min-w-0 truncate">{p.name}</span>
+                <span className={`text-[10px] font-mono font-medium px-2 py-0.5 rounded shrink-0 ${
                   p.action === "HALT" ? "bg-red/10 text-red border border-red/20" : "bg-amber/10 text-amber border border-amber/20"
                 }`}>{p.action}</span>
               </div>
               <p className="text-sm text-muted leading-relaxed mb-4">{p.desc}</p>
-              <div className="flex items-center gap-1.5 font-mono text-[10px]">
+              <div className="flex flex-wrap items-center gap-1.5 font-mono text-[10px]">
                 {p.steps.map((s, i) => (
-                  <span key={i} className={s === "→" ? "text-muted-darker" : "text-foreground/50 bg-white/5 px-1.5 py-0.5 rounded"}>
+                  <span key={i} className={s === "→" ? "text-muted-darker" : "text-foreground/50 bg-surface-tint px-1.5 py-0.5 rounded"}>
                     {s}
                   </span>
                 ))}
@@ -557,7 +561,7 @@ function Architecture() {
             <span className="w-3 h-3 rounded-full bg-[#28c840]" />
             <span className="ml-3 text-xs text-muted-darker font-mono">blackwall / gateway</span>
           </div>
-          <div className="p-5 font-mono text-[13px] text-foreground/60 leading-relaxed overflow-x-auto">
+          <div className="p-5 font-mono text-[11px] sm:text-[13px] text-foreground/60 leading-relaxed overflow-x-auto">
             <div className="text-foreground/80">■ blackwall v0.1.0</div>
             <div className="pl-2">policy: default | session: 7f3a28</div>
             <div className="pl-2">workspace: /Users/you/project</div>
@@ -582,7 +586,7 @@ function CTA() {
   return (
     <section className="py-14 px-6 relative">
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-gradient-radial from-white/[0.02] to-transparent rounded-full blur-3xl" />
+        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-gradient-radial from-foreground/[0.03] to-transparent rounded-full blur-3xl" />
       </div>
       <div className="max-w-[600px] mx-auto text-center relative">
         <h2 className="text-3xl sm:text-4xl font-bold tracking-[-0.03em] mb-4">
@@ -622,7 +626,7 @@ function BrandLogo() {
         src="/blackwall_logo.svg"
         alt="Blackwall"
         className="h-16 w-auto"
-        style={{ filter: "brightness(0) invert(1)" }}
+        style={{ filter: "var(--logo-filter)" }}
       />
     </span>
   );
