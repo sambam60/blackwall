@@ -267,9 +267,8 @@ Every action evaluation is logged as append-only JSONL at `~/.blackwall/logs/<se
 # From source (requires Rust toolchain)
 cargo install --path crates/blackwall-cli
 
-# Homebrew (macOS/Linux) — coming soon
-brew tap blackwall-protocol/blackwall
-brew install blackwall
+# Homebrew (macOS/Linux)
+brew tap sambam60/blackwall && brew install blackwall
 ```
 
 ## Protocol

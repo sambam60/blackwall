@@ -82,7 +82,7 @@ function Hero() {
           <CopyCommand
             commands={[
               { id: "cargo", label: "cargo", command: "cargo install --path crates/blackwall-cli" },
-              { id: "brew", label: "brew", command: "brew tap blackwall-protocol/blackwall && brew install blackwall" },
+              { id: "brew", label: "brew", command: "brew tap sambam60/blackwall && brew install blackwall" },
               {
                 id: "curl",
                 label: "curl",
