@@ -51,15 +51,15 @@ function Nav() {
               key={link.label}
               href={link.href}
               {...(link.external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
-              className="h-full flex items-center px-5 text-[11px] font-medium uppercase tracking-[0.08em] text-muted hover:text-foreground border-r border-border first:border-l transition-colors"
+              className="h-full flex items-center px-5 text-[11px] font-medium uppercase tracking-[0.08em] text-muted border-r border-border first:border-l transition-[color,background-color] duration-150 ease-out hover:bg-card hover:text-foreground dark:hover:bg-card-hover"
             >
               {link.label}
             </a>
           ))}
         </div>
         <div className="ml-auto flex items-center gap-4">
-          <a href="#features" className="md:hidden text-[11px] font-medium uppercase tracking-[0.08em] text-muted hover:text-foreground transition-colors">Features</a>
-          <a href="https://github.com/sambam60/blackwall" target="_blank" rel="noopener noreferrer" className="md:hidden text-[11px] font-medium uppercase tracking-[0.08em] text-muted hover:text-foreground transition-colors">GitHub</a>
+          <a href="#features" className="md:hidden rounded-md px-2 py-1.5 text-[11px] font-medium uppercase tracking-[0.08em] text-muted transition-[color,background-color] duration-150 ease-out hover:bg-card hover:text-foreground dark:hover:bg-card-hover">Features</a>
+          <a href="https://github.com/sambam60/blackwall" target="_blank" rel="noopener noreferrer" className="md:hidden rounded-md px-2 py-1.5 text-[11px] font-medium uppercase tracking-[0.08em] text-muted transition-[color,background-color] duration-150 ease-out hover:bg-card hover:text-foreground dark:hover:bg-card-hover">GitHub</a>
           <ThemeToggle />
         </div>
       </div>
