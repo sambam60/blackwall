@@ -59,6 +59,7 @@ export function HeroArtwork() {
           inset: 0,
           width: "100%",
           height: "100%",
+          opacity: dark ? 1 : 0.12,
           mixBlendMode: dark ? "color-burn" : "multiply",
           backgroundColor: dark ? "#000000" : "#ffffff",
         }}
