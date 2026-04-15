@@ -13,13 +13,14 @@ export function HeroArtwork() {
         className="absolute inset-0"
         style={{ backgroundColor: dark ? "#000000" : "#ffffff" }}
       />
-      <img
-        src={dark ? "/hero-art.png" : "/hero-art-light.jpg"}
-        alt=""
-        aria-hidden="true"
-        className="absolute inset-0 w-full h-full object-cover blur-[9px] scale-105"
-        style={{ opacity: dark ? 1 : 0.2 }}
-      />
+      {dark ? (
+        <img
+          src="/hero-art.png"
+          alt=""
+          aria-hidden="true"
+          className="absolute inset-0 w-full h-full object-cover blur-[9px] scale-105"
+        />
+      ) : null}
       {dark ? (
         <GrainGradient
           speed={1}
@@ -51,14 +52,14 @@ export function HeroArtwork() {
         scale={0.38}
         frame={1080151.8}
         colorBack="#00000000"
-        colorFront={dark ? "#FFFFFF" : "#3b82f6"}
+        colorFront={dark ? "#FFFFFF" : "#2563eb"}
         style={{
           position: "absolute",
           inset: 0,
           width: "100%",
           height: "100%",
-          opacity: dark ? 1 : 0.12,
-          mixBlendMode: dark ? "color-burn" : "multiply",
+          opacity: dark ? 1 : 0.26,
+          mixBlendMode: dark ? "color-burn" : "normal",
           backgroundColor: dark ? "#000000" : "#ffffff",
         }}
       />
