@@ -18,33 +18,31 @@ export function HeroArtwork() {
         alt=""
         aria-hidden="true"
         className="absolute inset-0 w-full h-full object-cover blur-[9px] scale-105"
-        style={{ opacity: dark ? 1 : 0.1 }}
+        style={{ opacity: dark ? 1 : 0.2 }}
       />
-      <GrainGradient
-        speed={1}
-        scale={0.58}
-        rotation={0}
-        offsetX={0.06}
-        offsetY={0}
-        softness={0.49}
-        intensity={0.7}
-        noise={0.21}
-        shape="wave"
-        colors={
-          dark
-            ? ["#08090A", "#1B0504", "#2D070C", "#930D0B", "#9D3444"]
-            : ["#f0f4ff", "#d4e0ff", "#8fb5ff", "#3b72f6", "#1d4ed8"]
-        }
-        colorBack="#00000000"
-        style={{
-          position: "absolute",
-          inset: 0,
-          width: "100%",
-          height: "100%",
-          opacity: 0.6,
-          backgroundColor: dark ? "#000000" : "#ffffff",
-        }}
-      />
+      {dark ? (
+        <GrainGradient
+          speed={1}
+          scale={0.58}
+          rotation={0}
+          offsetX={0.06}
+          offsetY={0}
+          softness={0.49}
+          intensity={0.7}
+          noise={0.21}
+          shape="wave"
+          colors={["#08090A", "#1B0504", "#2D070C", "#930D0B", "#9D3444"]}
+          colorBack="#00000000"
+          style={{
+            position: "absolute",
+            inset: 0,
+            width: "100%",
+            height: "100%",
+            opacity: 0.6,
+            backgroundColor: "#000000",
+          }}
+        />
+      ) : null}
       <Dithering
         speed={1}
         shape="simplex"
