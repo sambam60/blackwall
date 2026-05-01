@@ -102,7 +102,28 @@ impl RiskScorer {
         match &action.tool {
             ToolCategory::Network => "unknown".into(),
             ToolCategory::Shell => "unknown".into(),
+            ToolCategory::Mcp => classify_mcp_tool(&action.target),
             _ => "normal".into(),
         }
     }
+}
+
+fn classify_mcp_tool(name: &str) -> String {
+    let lower = name.to_ascii_lowercase();
+    let side_effect_terms = [
+        "write", "edit", "patch", "apply", "create", "update", "delete", "remove", "send", "post",
+        "publish", "deploy", "execute", "exec", "run", "shell", "command", "commit", "push",
+        "merge",
+    ];
+
+    if side_effect_terms.iter().any(|term| lower.contains(term)) {
+        return "side_effect".into();
+    }
+
+    let read_terms = ["read", "list", "search", "fetch", "get", "find", "view"];
+    if read_terms.iter().any(|term| lower.contains(term)) {
+        return "read".into();
+    }
+
+    "unknown".into()
 }

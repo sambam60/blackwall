@@ -97,6 +97,53 @@ permissions:
       - "/proc/**"
     deny_escalation: true
 
+  mcp:
+    allow:
+      - "read*"
+      - "*read*"
+      - "list*"
+      - "*list*"
+      - "search*"
+      - "*search*"
+      - "fetch*"
+      - "*fetch*"
+      - "get*"
+      - "*get*"
+      - "find*"
+      - "*find*"
+      - "view*"
+      - "*view*"
+    deny:
+      - "*write*"
+      - "*edit*"
+      - "*patch*"
+      - "*apply*"
+      - "*create*"
+      - "*update*"
+      - "*delete*"
+      - "*remove*"
+      - "*send*"
+      - "*post*"
+      - "*publish*"
+      - "*deploy*"
+      - "*execute*"
+      - "*exec*"
+      - "*run*"
+      - "*shell*"
+      - "*command*"
+      - "*commit*"
+      - "*push*"
+      - "*merge*"
+      - "*.env*"
+      - "*/credentials/*"
+      - "*credentials.json*"
+      - "*/secrets/*"
+      - "*.pem*"
+      - "*.key*"
+      - "*/.ssh/*"
+    confirm: []
+    default: deny
+
 patterns:
   - name: credential_harvesting
     description: "Sequential access to process info and environment data"
@@ -142,6 +189,8 @@ scoring:
     "filesystem.write.secret": 150
     "shell.exec.unknown": 40
     "network.request.unknown": 60
+    "mcp.tool_call.side_effect": 80
+    "mcp.tool_call.unknown": 60
     "process.read": 50
 
 circuit_breakers:

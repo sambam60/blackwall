@@ -86,17 +86,16 @@ function Hero() {
             <span className="text-muted/70">for agents</span>
           </h1>
           <p className="text-lg text-muted/80 max-w-[500px] mb-10 leading-relaxed">
-            File writes, shell commands, network requests, MCP tool calls. Every action passes through a deterministic policy engine before it executes. Stop your agents from going rogue.
+            Shell commands and MCP tool calls evaluated by deterministic policy before execution. Native adapters can emit the same action envelope for file, network, and process operations. Stop covered agent side effects from going rogue.
           </p>
           <CopyCommand
             commands={[
               { id: "cargo", label: "cargo", command: "cargo install --path crates/blackwall-cli" },
               { id: "brew", label: "brew", command: "brew tap sambam60/blackwall && brew install blackwall" },
               {
-                id: "curl",
-                label: "curl",
-                command:
-                  "curl -fsSL -o blackwall-install.sh https://raw.githubusercontent.com/sambam60/blackwall/main/install.sh && bash blackwall-install.sh",
+                id: "codex",
+                label: "codex",
+                command: "blackwall exec -- codex --sandbox workspace-write --ask-for-approval on-request",
               },
             ]}
           />
@@ -116,9 +115,9 @@ function Features() {
 
         <div className="grid md:grid-cols-2 gap-3 mt-10">
           {/* 01 - Shell Interception (large) */}
-          <FeatureCard num="01" title="Shell Interception" subtitle="Every command, evaluated." className="md:row-span-2">
+          <FeatureCard num="01" title="Shell Interception" subtitle="Protected commands, evaluated." className="md:row-span-2">
             <p className="text-muted text-sm leading-relaxed mb-6">
-              PATH-prepended shims catch every agent command before execution. Git, curl, npm, python, and more. The real binary only runs after policy approval.
+              PATH-prepended shims catch common agent-spawned commands before execution. Git, curl, npm, python, cloud CLIs, package managers, and more. The real binary only runs after policy approval.
             </p>
             <div className="bg-background rounded-lg border border-border p-4 font-mono text-xs space-y-1.5 overflow-x-auto">
               <LogLine time="14:23:01" icon="✓" color="text-green" label="shell.exec" value="git status" />
@@ -130,13 +129,13 @@ function Features() {
           </FeatureCard>
 
           {/* 02 - MCP Proxy */}
-          <FeatureCard num="02" title="MCP Tool Proxy" subtitle="Intercept every tool call.">
+          <FeatureCard num="02" title="MCP Tool Proxy" subtitle="Policy for tool calls.">
             <p className="text-muted text-sm leading-relaxed mb-6">
-              Stdio man-in-the-middle on JSON-RPC <code className="text-foreground/70 bg-surface-tint px-1.5 py-0.5 rounded text-xs">tools/call</code>. Every MCP tool invocation evaluated before reaching the server.
+              Stdio man-in-the-middle on JSON-RPC <code className="text-foreground/70 bg-surface-tint px-1.5 py-0.5 rounded text-xs">tools/call</code>. Read tools can pass, side effects can pause, and dangerous payloads can be denied before reaching the server.
             </p>
             <div className="bg-background rounded-lg border border-border p-4 font-mono text-xs space-y-1.5 overflow-x-auto">
               <LogLine time="14:23:20" icon="·" color="text-muted" label="mcp.tool_call" value="read_file" />
-              <LogLine time="14:23:22" icon="✗" color="text-red" label="mcp.tool_call" value="execute_command" />
+              <LogLine time="14:23:22" icon="⏸" color="text-amber" label="mcp.tool_call" value="execute_command" />
               <LogLine time="14:23:25" icon="·" color="text-muted" label="mcp.tool_call" value="search_files" />
             </div>
           </FeatureCard>
@@ -411,7 +410,7 @@ function Integrations() {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-3">
+        <div className="grid md:grid-cols-4 gap-3">
           <IntegrationCard
             name="Cursor"
             desc="Shell commands intercepted automatically. Wrap MCP servers in your config."
@@ -434,14 +433,23 @@ function Integrations() {
           />
           <IntegrationCard
             name="Claude Code"
-            desc="Wrap the entire process. Every command Claude spawns is intercepted."
+            desc="Wrap the process so protected commands Claude spawns are intercepted."
             lines={[
               { text: '$ blackwall exec -- claude', highlight: true },
             ]}
           />
           <IntegrationCard
+            name="Codex"
+            desc="Layer Blackwall around Codex while keeping the native sandbox and approvals enabled."
+            lines={[
+              { text: '$ blackwall exec -- codex', highlight: true },
+              { text: '  --sandbox workspace-write', highlight: true },
+              { text: '  --ask-for-approval on-request', highlight: true },
+            ]}
+          />
+          <IntegrationCard
             name="Any Agent"
-            desc="Wrap any agent process with full shell and MCP protection."
+            desc="Wrap any agent process that launches shell commands or stdio MCP servers."
             lines={[
               { text: '$ blackwall exec -- python agent.py', highlight: true },
               { text: '$ blackwall exec -- node agent.js', highlight: true },

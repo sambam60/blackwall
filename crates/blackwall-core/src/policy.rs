@@ -30,6 +30,8 @@ pub struct Permissions {
     pub network: NetworkPermissions,
     #[serde(default)]
     pub process: ProcessPermissions,
+    #[serde(default)]
+    pub mcp: McpPermissions,
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
@@ -78,6 +80,33 @@ pub struct ProcessPermissions {
     pub deny: Vec<String>,
     #[serde(default)]
     pub deny_escalation: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct McpPermissions {
+    #[serde(default)]
+    pub allow: Vec<String>,
+    #[serde(default)]
+    pub deny: Vec<String>,
+    #[serde(default)]
+    pub confirm: Vec<String>,
+    #[serde(default = "default_mcp_decision")]
+    pub default: String,
+}
+
+fn default_mcp_decision() -> String {
+    "confirm".into()
+}
+
+impl Default for McpPermissions {
+    fn default() -> Self {
+        Self {
+            allow: Vec::new(),
+            deny: Vec::new(),
+            confirm: Vec::new(),
+            default: default_mcp_decision(),
+        }
+    }
 }
 
 // --- Patterns (temporal anti-pattern detection) ---

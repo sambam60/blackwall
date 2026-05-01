@@ -45,6 +45,13 @@ permissions:
     deny: []
     deny_escalation: false
 
+  mcp:
+    allow:
+      - "*"
+    deny: []
+    confirm: []
+    default: allow
+
 patterns: []
 
 scoring:

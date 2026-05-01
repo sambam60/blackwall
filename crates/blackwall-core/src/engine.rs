@@ -1,6 +1,6 @@
 use crate::circuit::CircuitBreaker;
 use crate::envelope::{Action, ActionEnvelope, Decision, EscalationContext, ToolCategory};
-use crate::pattern::PatternMatcher;
+use crate::pattern::{simple_wildcard_match, PatternMatcher};
 use crate::policy::Policy;
 use crate::scoring::RiskScorer;
 use crate::BlackwallError;
@@ -131,9 +131,7 @@ impl PolicyEngine {
             ToolCategory::Shell => self.check_shell(action),
             ToolCategory::Network => self.check_network(action),
             ToolCategory::Process => self.check_process(action),
-            ToolCategory::Mcp => Decision::Log {
-                reason: "MCP pass-through".into(),
-            },
+            ToolCategory::Mcp => self.check_mcp(action),
         }
     }
 
@@ -180,9 +178,7 @@ impl PolicyEngine {
         let program = command.split_whitespace().next().unwrap_or("");
 
         for denied in &self.policy.permissions.shell.deny {
-            if program == denied
-                || (denied.contains(' ') && command.contains(denied.as_str()))
-            {
+            if command_rule_matches(denied, program, command) {
                 return Decision::Deny {
                     reason: format!("command '{}' matches deny rule '{}'", program, denied),
                     rule: "permissions.shell.deny".into(),
@@ -223,7 +219,7 @@ impl PolicyEngine {
         }
 
         for confirm_cmd in &self.policy.permissions.shell.confirm {
-            if command.contains(confirm_cmd.as_str()) {
+            if command_rule_matches(confirm_cmd, program, command) {
                 return Decision::Pause {
                     reason: format!("'{}' requires confirmation", command),
                     context: EscalationContext {
@@ -236,7 +232,7 @@ impl PolicyEngine {
         }
 
         for allowed in &self.policy.permissions.shell.allow {
-            if program == allowed {
+            if program == allowed || simple_wildcard_match(allowed, program) {
                 return Decision::Allow;
             }
         }
@@ -289,11 +285,123 @@ impl PolicyEngine {
 
         if let Some(pattern) = matches_any(&self.proc_deny, &action.target) {
             return Decision::Deny {
-                reason: format!("'{}' matches process deny rule '{}'", action.target, pattern),
+                reason: format!(
+                    "'{}' matches process deny rule '{}'",
+                    action.target, pattern
+                ),
                 rule: "permissions.process.deny".into(),
             };
         }
 
         Decision::Allow
     }
+
+    fn check_mcp(&self, action: &Action) -> Decision {
+        let args = serde_json::to_string(&action.parameters).unwrap_or_default();
+        let combined = if args.is_empty() || args == "null" {
+            action.target.clone()
+        } else {
+            format!("{} {}", action.target, args)
+        };
+
+        if json_has_sensitive_key(&action.parameters) {
+            return Decision::Deny {
+                reason: format!(
+                    "MCP tool '{}' includes sensitive argument keys",
+                    action.target
+                ),
+                rule: "permissions.mcp.sensitive_arguments".into(),
+            };
+        }
+
+        for denied in &self.policy.permissions.mcp.deny {
+            if mcp_rule_matches(denied, &action.target, &args, &combined) {
+                return Decision::Deny {
+                    reason: format!(
+                        "MCP tool '{}' matches deny rule '{}'",
+                        action.target, denied
+                    ),
+                    rule: "permissions.mcp.deny".into(),
+                };
+            }
+        }
+
+        for confirm in &self.policy.permissions.mcp.confirm {
+            if mcp_rule_matches(confirm, &action.target, &args, &combined) {
+                return Decision::Pause {
+                    reason: format!("MCP tool '{}' requires confirmation", action.target),
+                    context: EscalationContext {
+                        what_happened: format!("mcp.tool_call {}", action.target),
+                        why_flagged: format!("matches confirmation rule '{}'", confirm),
+                        risk_score: 0,
+                    },
+                };
+            }
+        }
+
+        for allowed in &self.policy.permissions.mcp.allow {
+            if mcp_rule_matches(allowed, &action.target, &args, &combined) {
+                return Decision::Allow;
+            }
+        }
+
+        match self.policy.permissions.mcp.default.as_str() {
+            "allow" => Decision::Allow,
+            "log" => Decision::Log {
+                reason: "MCP default log".into(),
+            },
+            "deny" => Decision::Deny {
+                reason: format!("MCP tool '{}' not in allow list", action.target),
+                rule: "permissions.mcp.default_deny".into(),
+            },
+            _ => Decision::Pause {
+                reason: format!("MCP tool '{}' is not explicitly allowed", action.target),
+                context: EscalationContext {
+                    what_happened: format!("mcp.tool_call {}", action.target),
+                    why_flagged: "MCP default requires confirmation".into(),
+                    risk_score: 0,
+                },
+            },
+        }
+    }
+}
+
+fn command_rule_matches(rule: &str, program: &str, command: &str) -> bool {
+    rule == "*"
+        || program == rule
+        || simple_wildcard_match(rule, program)
+        || command.contains(rule)
+        || simple_wildcard_match(rule, command)
+}
+
+fn mcp_rule_matches(rule: &str, tool_name: &str, args: &str, combined: &str) -> bool {
+    rule == "*"
+        || tool_name == rule
+        || simple_wildcard_match(rule, tool_name)
+        || args.contains(rule)
+        || simple_wildcard_match(rule, args)
+        || combined.contains(rule)
+        || simple_wildcard_match(rule, combined)
+}
+
+fn json_has_sensitive_key(value: &serde_json::Value) -> bool {
+    match value {
+        serde_json::Value::Object(map) => map.iter().any(|(key, value)| {
+            let lower = key.to_ascii_lowercase();
+            is_sensitive_key(&lower) || json_has_sensitive_key(value)
+        }),
+        serde_json::Value::Array(items) => items.iter().any(json_has_sensitive_key),
+        _ => false,
+    }
+}
+
+fn is_sensitive_key(key: &str) -> bool {
+    key.contains("password")
+        || key.contains("passwd")
+        || key.contains("secret")
+        || key.contains("credential")
+        || key.contains("api_key")
+        || key.contains("apikey")
+        || key.contains("token")
+        || key.contains("private_key")
 }

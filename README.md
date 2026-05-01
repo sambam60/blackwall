@@ -10,7 +10,7 @@
 
 **A deterministic execution firewall for AI agents.**
 
-Blackwall sits between AI agents and their tools. Every action — file write, shell command, network request, MCP tool call — passes through a deterministic policy engine before it executes. No silent side effects. Every invocation auditable. The gateway is rule-based, not AI. It can't be prompt-injected. It can't be socially engineered. It runs at the speed of pattern matching, not inference.
+Blackwall sits between AI agents and their tools. Shell commands and stdio MCP tool calls pass through a deterministic policy engine before they execute, and native adapters can emit the same action envelope for filesystem, network, and process operations. No silent side effects at covered boundaries. Every invocation auditable. The gateway is rule-based, not AI. It can't be prompt-injected. It can't be socially engineered. It runs at the speed of pattern matching, not inference.
 
 ## Quick Start
 
@@ -63,7 +63,7 @@ Blackwall operates at the execution boundary — the moment an agent's intent be
 
 ```
 14:23:20 · mcp.tool_call     read_file
-14:23:22 ✗ mcp.tool_call     execute_command  [permissions.shell.deny]
+14:23:22 ⏸ mcp.tool_call     execute_command  [requires confirmation]
 ```
 
 **Escalation**: When the gateway is uncertain (a `pause` decision), it prompts the human inline:
@@ -103,7 +103,31 @@ Wrap the entire process:
 blackwall exec -- claude
 ```
 
-This injects shell shims into Claude Code's environment. Every command it spawns is intercepted. Your own terminal is unaffected.
+This injects shell shims into Claude Code's environment. Protected commands it spawns are intercepted. Your own terminal is unaffected.
+
+### Codex
+
+Keep Codex's native sandbox and approval policy enabled, then wrap the local client:
+
+```bash
+blackwall exec -- codex --sandbox workspace-write --ask-for-approval on-request
+```
+
+For a stricter posture:
+
+```bash
+blackwall exec -- codex --sandbox workspace-write --ask-for-approval untrusted
+```
+
+Codex stdio MCP servers can also be wrapped in `~/.codex/config.toml`:
+
+```toml
+[mcp_servers.example]
+command = "blackwall"
+args = ["proxy-mcp", "--", "npx", "-y", "@example/mcp-server"]
+```
+
+See [docs/AGENT_INTEGRATION.md](docs/AGENT_INTEGRATION.md) for agent-specific setup and [docs/THREAT_MODEL.md](docs/THREAT_MODEL.md) for the exact security boundary.
 
 ### Any Agent
 
@@ -125,7 +149,7 @@ source ~/.blackwall/env
 | ---------------------------------- | -------------------------------------------------------- |
 | `blackwall`                        | Start the gateway. Shell shims + IPC server + audit log. |
 | `blackwall init`                   | Add shell hook to `~/.zshrc` (one-time setup).           |
-| `blackwall exec -- <cmd>`          | Wrap a specific process with full protection.            |
+| `blackwall exec -- <cmd>`          | Wrap a specific process with shell-shim protection.      |
 | `blackwall proxy-mcp -- <cmd>`     | Proxy an MCP server with tool call interception.         |
 | `blackwall off`                    | Stop all running gateways.                               |
 | `blackwall status`                 | Show active sessions and recent logs.                    |
@@ -154,6 +178,7 @@ Three built-in profiles:
 | **Shell**      | `git`, `npm`, `cargo`, `python`, `node`, `make`, `curl`... | `sudo`, `su`, `chmod +s`, `dd`, `mkfs` | `rm -rf`, `git push --force`, `DROP TABLE` |
 | **Network**    | Package registries, GitHub                                 | Everything else (`*`)                  | New domains (first time)                   |
 | **Process**    | —                                                          | `/proc/*/mem`, `/proc/*/environ`       | —                                          |
+| **MCP**        | Read/list/search/fetch/get tools                            | Secrets, SSH keys, destructive payloads | Write/edit/delete/send/execute tools       |
 
 
 Plus pipe-to-shell patterns are always blocked: `curl ... | sh`, `wget ... | bash`.
@@ -184,6 +209,11 @@ permissions:
   network:
     allow: [github.com, crates.io]
     deny: ["*"]
+  mcp:
+    allow: ["read*", "list*", "search*", "fetch*"]
+    confirm: ["*write*", "*delete*", "*execute*", "*send*"]
+    deny: ["*.env*", "*secrets*", "*.key*"]
+    default: confirm
 
 patterns:
   - name: secret_then_network

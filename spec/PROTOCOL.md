@@ -50,6 +50,7 @@ Every tool invocation is wrapped in an action envelope before reaching the gatew
 | `process`    | `read`, `escalate`        | Process path or resource |
 | `mcp`        | `call`                    | Tool name                |
 
+For MCP actions, adapters should include the tool arguments in `parameters`. Policies may match the tool name, serialized arguments, or both. This lets a policy distinguish read-only tools from side-effecting calls such as `send_email`, `execute_command`, or `apply_patch`.
 
 ## 3. Policy Schema
 
@@ -82,6 +83,11 @@ permissions:
   process:
     deny: []
     deny_escalation: boolean
+  mcp:
+    allow: []
+    deny: []
+    confirm: []
+    default: "allow | deny | confirm | log"
 
 patterns:
   - name: "string"
@@ -234,6 +240,8 @@ An adapter integrates the Blackwall gateway with a specific agent framework. Ada
 - **Shell**: shim around command execution
 - **OpenAI function calling**: middleware layer
 - **LangChain/LangGraph**: chain interceptors
+
+Adapters that cannot classify an action should fail closed according to policy: deny in strict environments, require confirmation in default environments, or log in permissive audit-only environments.
 
 ## 10. Principal Hierarchy
 

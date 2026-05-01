@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Blackwall — Deterministic Execution Firewall for AI Agents",
   description:
-    "Blackwall sits between AI agents and their tools. Every action passes through a deterministic policy engine before it executes. Rule-based. Auditable. Unpromptable.",
+    "Blackwall sits between AI agents and their tools. Covered shell and MCP actions pass through deterministic policy before execution. Rule-based. Auditable. Unpromptable.",
 };
 
 const themeScript = `(function(){try{var t=localStorage.getItem("theme");if(t==="dark"||(!t&&window.matchMedia("(prefers-color-scheme:dark)").matches))document.documentElement.classList.add("dark")}catch(e){}})()`;
